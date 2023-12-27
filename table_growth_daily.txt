@@ -1,0 +1,55 @@
+column owner format a16 
+column object_name format a36 
+column start_day format a11 
+column Growth_in_MB 9999999999 
+
+select obj.owner, 
+obj.object_name, 
+to_char(sn.BEGIN_INTERVAL_TIME,'RRRR-MON-DD') start_day, 
+sum(a.SPACE_USED_DELTA)/(1024*1024) Growth_in_MB 
+from 
+dba_hist_seg_stat a, dba_hist_snapshot sn, dba_objects obj 
+where sn.snap_id = a.snap_id 
+and a.instance_number = sn.instance_number 
+and obj.object_id = a.obj# 
+and obj.owner not in ('ANONYMOUS','APEX_040200','APEX_PUBLIC_USER','APPQOSSYS','AUDSYS','BI','CTXSYS','DBSNMP','DIP','DVF','DVSYS','EXFSYS',
+'FLOWS_FILES','GSMADMIN_INTERNAL','GSMCATUSER','GSMUSER','HR','IX','LBACSYS','MDDATA','MDSYS','OE','ORACLE_OCM','ORDDATA','ORDPLUGINS',
+'ORDSYS','OUTLN','PM','SCOTT','SH','SI_INFORMTN_SCHEMA','SPATIAL_CSW_ADMIN_USR','SPATIAL_WFS_ADMIN_USR','SYS','SYSBACKUP','SYSDG','SYSKM',
+'SYSTEM','WMSYS','XDB','SYSMAN','RMAN','RMAN_BACKUP','OWBSYS','OWBSYS_AUDIT','APEX_030200','MGMT_VIEW','OJVMSYS','OLAPSYS','DBSFWUSER','APEX_050100','APEX_220100','APEX_190200','SQLTXPLAIN') 
+and end_interval_time between to_timestamp('02-NOV-2023','DD-MON-RRRR') 
+and to_timestamp('11-NOV-2023','DD-MON-RRRR') 
+group by obj.owner, obj.object_name, to_char(sn.BEGIN_INTERVAL_TIME,'RRRR-MON-DD') 
+order by obj.owner, obj.object_name;
+
+
+
+SELECT 
+    obj.owner, 
+    obj.object_name, 
+    obj.object_type,
+    TO_CHAR(sn.BEGIN_INTERVAL_TIME,'RRRR-MON-DD') AS start_day, 
+    SUM(a.SPACE_USED_DELTA)/(1024*1024) AS Growth_in_MB 
+FROM 
+    dba_hist_seg_stat a, 
+    dba_hist_snapshot sn, 
+    dba_objects obj 
+WHERE 
+    sn.snap_id = a.snap_id 
+    AND a.instance_number = sn.instance_number 
+    AND obj.object_id = a.obj# 
+    AND obj.object_type = 'TABLE'
+    AND obj.owner NOT IN ('ANONYMOUS','APEX_040200','APEX_PUBLIC_USER','APPQOSSYS','AUDSYS','BI','CTXSYS','DBSNMP','DIP','DVF','DVSYS','EXFSYS',
+        'FLOWS_FILES','GSMADMIN_INTERNAL','GSMCATUSER','GSMUSER','HR','IX','LBACSYS','MDDATA','MDSYS','OE','ORACLE_OCM','ORDDATA','ORDPLUGINS',
+        'ORDSYS','OUTLN','PM','SCOTT','SH','SI_INFORMTN_SCHEMA','SPATIAL_CSW_ADMIN_USR','SPATIAL_WFS_ADMIN_USR','SYS','SYSBACKUP','SYSDG','SYSKM',
+        'SYSTEM','WMSYS','XDB','SYSMAN','RMAN','RMAN_BACKUP','OWBSYS','OWBSYS_AUDIT','APEX_030200','MGMT_VIEW','OJVMSYS','OLAPSYS','DBSFWUSER','APEX_050100','APEX_220100','APEX_190200','SQLTXPLAIN') 
+    AND end_interval_time BETWEEN TO_TIMESTAMP('01-NOV-2023','DD-MON-RRRR') AND TO_TIMESTAMP('23-NOV-2023','DD-MON-RRRR') 
+GROUP BY 
+    obj.owner, 
+    obj.object_name,
+    obj.object_type, 
+    TO_CHAR(sn.BEGIN_INTERVAL_TIME,'RRRR-MON-DD') 
+HAVING 
+    SUM(a.SPACE_USED_DELTA) > 0 
+ORDER BY 
+    obj.owner, 
+    obj.object_name;
